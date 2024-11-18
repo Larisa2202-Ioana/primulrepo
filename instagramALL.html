@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link href="styleInsta.css" rel="stylesheet" />
+    <title>Instagram</title>
+  </head>
+
+  <body>
+    <h1>Pagina profil</h1>
+    <script>
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+      let currentUser = JSON.parse(localStorage.getItem("currentUser")) || [];
+
+      function showRegister() {
+        document.body.innerHTML = "";
+        const containerReg = document.createElement("div");
+        containerReg.className = "containerReg";
+
+        const headingReg = document.createElement("h1");
+        headingReg.textContent = "Register";
+        containerReg.appendChild(headingReg);
+
+        const formReg = document.createElement("form");
+        formReg.id = "regForm";
+        formReg.onsubmit = function (event) {
+          register(event);
+        };
+
+        const labels = [
+          "First Name",
+          "Last Name",
+          "Email",
+          "Parola",
+          "Repeta Parola",
+        ];
+        const ids = [
+          "regFirstname",
+          "regLastname",
+          "email",
+          "regPassword",
+          "repeatPassword",
+        ];
+
+        labels.forEach((labelText, index) => {
+          const label = document.createElement("label");
+          label.textContent = labelText;
+          formReg.appendChild(label); //creare labeluri pentru elem din array
+
+          const input = document.createElement("input");
+          if (labelText.includes("Parola")) {
+            input.type = "password";
+          } else if (labelText === "Email") {
+            input.type = "email";
+          } else {
+            input.type = "text";
+          }
+          input.id = ids[index];
+          input.required = true; //camp obligatoriu
+          formReg.appendChild(input);
+        });
+
+        const submitButton = document.createElement("button");
+        submitButton.type = "submit";
+        submitButton.id = "butonInregistrare";
+        submitButton.textContent = "Inregistreaza-te";
+        formReg.appendChild(submitButton);
+
+        const loginLink = document.createElement("a");
+        loginLink.href = "#";
+        loginLink.textContent = "Ai deja un cont? Autentifică-te aici!";
+        loginLink.onclick = showLogin;
+        formReg.appendChild(loginLink);
+
+        containerReg.appendChild(formReg);
+
+        const message = document.createElement("div");
+        message.id = "message";
+        containerReg.appendChild(message);
+
+        document.body.appendChild(containerReg);
+      }
+
+      function register(event) {
+        event.preventDefault();
+
+        const firstName = document.getElementById("regFirstname").value;
+        const lastName = document.getElementById("regLastname").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("regPassword").value;
+        const repeatPassword = document.getElementById("repeatPassword").value;
+
+        const message = document.getElementById("message");
+
+        if (password !== repeatPassword) {
+          message.textContent = "Parolele nu sunt la fel!";
+          return;
+        }
+
+        const verifyUpperCase = /[A-Z]/.test(password);
+        const verifyLowerCase = /[a-z]/.test(password);
+        const verifyNumber = /[0-9]/.test(password);
+        const verifySpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+        if (
+          !(
+            verifyUpperCase &&
+            verifyLowerCase &&
+            verifyNumber &&
+            verifySpecialChar
+          )
+        ) {
+          message.textContent =
+            "Parola trebuie să conțină cel puțin o literă mare, un caracter special și un număr!";
+          return;
+        }
+
+        const user = {
+          firstName,
+          lastName,
+          email,
+          password,
+          posts: [],
+        };
+
+        users.push(user);
+        localStorage.setItem("users", JSON.stringify(users));
+
+        message.textContent = `Bine ai venit! `;
+        setTimeout(() => {
+          showLogin();
+        }, 3000);
+      }
+
+      function showLogin() {
+        document.body.innerHTML = "";
+        const logForm = document.createElement("div");
+        logForm.className = "logForm";
+
+        const heading = document.createElement("h1");
+        heading.textContent = "Autentificare";
+        logForm.appendChild(heading);
+
+        const form = document.createElement("form");
+        form.onsubmit = function (event) {
+          login(event);
+        };
+
+        const labelEmail = document.createElement("label");
+        labelEmail.textContent = "Email";
+        form.appendChild(labelEmail);
+
+        const inputEmail = document.createElement("input");
+        inputEmail.type = "text";
+        inputEmail.id = "loginEmail";
+        inputEmail.required = true;
+        form.appendChild(inputEmail);
+
+        const labelPassword = document.createElement("label");
+        labelPassword.textContent = "Parola:";
+        form.appendChild(labelPassword);
+
+        const inputPassword = document.createElement("input");
+        inputPassword.type = "password";
+        inputPassword.id = "loginPassword";
+        inputPassword.required = true;
+        form.appendChild(inputPassword);
+
+        const submitButton = document.createElement("button");
+        submitButton.type = "submit";
+        submitButton.id = "butonAutentificare";
+        submitButton.textContent = "Autentifică-te";
+        form.appendChild(submitButton);
+
+        logForm.appendChild(form);
+
+        const messageLog = document.createElement("div");
+        messageLog.id = "messageLog";
+        logForm.appendChild(messageLog);
+
+        const registerLink = document.createElement("a");
+        registerLink.href = "#";
+        registerLink.textContent = "Nu ai un cont? Înregistrează-te aici!";
+        registerLink.onclick = showRegister;
+        logForm.appendChild(registerLink);
+
+        document.body.appendChild(logForm);
+      }
+
+      function login(event) {
+        event.preventDefault();
+
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+        const messageLog = document.getElementById("messageLog");
+
+        for (let i = 0; i < users.length; i++) {
+          if (users[i].email === email && users[i].password === password) {
+            messageLog.textContent = `Autentificare reușită!`;
+            currentUser = users[i];
+            localStorage.setItem("currentUser", JSON.stringify(currentUser));
+            showHome();
+            showSidebar();
+            return;
+          }
+        }
+        messageLog.textContent = "Email sau parolă incorecte!";
+      }
+
+      function showSidebar() {
+        const sidebar = document.createElement("div");
+        sidebar.className = "sidebar";
+
+        const instagramTitle = document.createElement("p");
+        instagramTitle.className = "instagramtitlu";
+        instagramTitle.textContent = "Instagram";
+        sidebar.appendChild(instagramTitle);
+
+        const menu = document.createElement("menu");
+        const menuItems = [
+          {
+            src: "home-icon-512x499-9nsfqhj5.png",
+            text: "Home",
+            onclick: function () {
+              showHome();
+              showSidebar();
+            },
+          },
+          { src: "searchicon.png", text: "Search" },
+          { src: "exploreicon.png", text: "Explore" },
+          { src: "reelsicon.png", text: "Reels" },
+          { src: "messagesicon.png", text: "Messages" },
+          { src: "notificon.png", text: "Notifications" },
+          {
+            src: "createicon.png",
+            text: "Create",
+            onclick: function () {
+              openCreatePostModal();
+            },
+          },
+          {
+            src: "user-person-icon.png",
+            text: "Profile",
+            onclick: function () {
+              showProfile();
+              showSidebar();
+            },
+          },
+        ];
+
+        menuItems.forEach((item) => {
+          const ul = document.createElement("ul");
+          const li = document.createElement("li");
+          const img = document.createElement("img");
+          img.src = item.src;
+          img.classList.add("sidebar-icon");
+
+          const span = document.createElement("span");
+          span.id = "casa";
+          span.textContent = item.text;
+
+          li.appendChild(img);
+          li.appendChild(span);
+          if (item.onclick) {
+            li.addEventListener("click", item.onclick);
+          }
+
+          ul.appendChild(li);
+          menu.appendChild(ul);
+        });
+
+        sidebar.appendChild(menu);
+        document.body.appendChild(sidebar);
+      }
+
+      function showHome() {
+        document.body.innerHTML = "";
+        const profileContainer = document.getElementById("profileContainer");
+        if (profileContainer) {
+          profileContainer.style.display = "none";
+        }
+
+        let homeContainer = document.getElementById("homeContainer");
+        if (!homeContainer) {
+          homeContainer = document.createElement("div");
+          homeContainer.id = "homeContainer";
+          homeContainer.style.display = "flex";
+        } else {
+          homeContainer.style.display = "flex";
+        }
+        document.body.appendChild(homeContainer);
+
+        //Story
+        const storyDiv = document.createElement("div");
+        storyDiv.className = "story";
+        const storyImages = [
+          "user-person-icon.png",
+          "pic2.jpg",
+          "user-person-icon.png",
+          "pic3.jpeg",
+          "user-person-icon.png",
+        ];
+
+        storyImages.forEach((imgSrc) => {
+          const img = document.createElement("img");
+          img.src = imgSrc;
+          img.style.width = "80px";
+          img.style.height = "80px";
+          img.className = "imaginiStory";
+
+          storyDiv.appendChild(img);
+        });
+
+        homeContainer.appendChild(storyDiv);
+
+        //Reels
+        const reelDiv = document.createElement("div");
+        reelDiv.className = "reel";
+
+        const reelItems = [
+          {
+            username: "the_deep_thinker",
+            imgSrc:
+              "https://images.unsplash.com/photo-1429198739803-7db875882052?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          },
+          {
+            username: "autumn_pumpkins",
+            imgSrc:
+              "https://plus.unsplash.com/premium_photo-1668967516060-624b8a7021f4?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          },
+        ];
+
+        reelItems.forEach((item) => {
+          const p = document.createElement("p");
+          const userImg = document.createElement("img");
+          userImg.src = "user-person-icon.png";
+          userImg.style.width = "50px";
+          userImg.style.height = "50px";
+          p.appendChild(userImg);
+          p.appendChild(document.createTextNode(item.username));
+
+          const ul = document.createElement("ul");
+          const reelImg = document.createElement("img");
+          reelImg.src = item.imgSrc;
+          reelImg.style.width = "400px";
+          reelImg.style.height = "600px";
+          ul.appendChild(reelImg);
+
+          reelDiv.appendChild(p);
+          reelDiv.appendChild(ul);
+        });
+        homeContainer.appendChild(reelDiv);
+
+        //Sugestii
+        const suggestDiv = document.createElement("div");
+        suggestDiv.className = "suggest";
+
+        const suggestHeader = document.createElement("p");
+        const suggestImg = document.createElement("img");
+        suggestImg.src = "user-person-icon.png";
+        suggestHeader.appendChild(suggestImg);
+        const username = document.createElement("span");
+        username.id = "yourProfile";
+        username.textContent = "Larisaioana22";
+
+        const switchSpan = document.createElement("span");
+        switchSpan.id = "switch";
+        switchSpan.textContent = "Switch";
+        suggestHeader.appendChild(username);
+        suggestHeader.appendChild(switchSpan);
+        suggestDiv.appendChild(suggestHeader);
+
+        const userSubtitle = document.createElement("p");
+        userSubtitle.textContent = "Larisa Ioana";
+        suggestDiv.appendChild(userSubtitle);
+
+        const suggestedText = document.createElement("p");
+        suggestedText.textContent = "Suggested for you";
+        suggestDiv.appendChild(suggestedText);
+
+        const suggestedUsers = [
+          "vlad_vmn",
+          "bogdan_laur",
+          "larisa_dumitru",
+          "marcel_bolovanu",
+          "dorel_ganea",
+        ];
+
+        suggestedUsers.forEach((user) => {
+          const userItem = document.createElement("ul");
+          userItem.className = "aranjat";
+          const userImg = document.createElement("img");
+          userImg.src = "user-person-icon.png";
+          userItem.appendChild(userImg);
+          userItem.appendChild(document.createTextNode(user));
+          const followSpan = document.createElement("span");
+          followSpan.id = "follow";
+          followSpan.textContent = "Follow";
+          userItem.appendChild(followSpan);
+          suggestDiv.appendChild(userItem);
+        });
+
+        homeContainer.appendChild(suggestDiv);
+      }
+
+      function showProfile() {
+        document.body.innerHTML = "";
+        const homeContainer = document.getElementById("homeContainer");
+        if (homeContainer) {
+          homeContainer.style.display = "none";
+        }
+
+        let profileContainer = document.getElementById("profileContainer");
+        if (!profileContainer) {
+          profileContainer = document.createElement("div");
+          profileContainer.className = "profile-container";
+          profileContainer.id = "profileContainer";
+        } else {
+          profileContainer.style.display = "flex";
+        }
+        document.body.appendChild(profileContainer);
+
+        const userInfoContainer = document.createElement("div");
+        userInfoContainer.classList.add("user-info");
+
+        function saveProfilePic(file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            localStorage.setItem("profilePic", e.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
+
+        function loadProfilePic() {
+          const profilePic = localStorage.getItem("profilePic");
+          if (profilePic) {
+            userProfilePic.src = profilePic;
+          } else {
+            userProfilePic.src = "user-person-icon.png";
+          }
+        }
+        const userProfilePic = document.createElement("img");
+        userProfilePic.alt = "Poză de profil";
+        userProfilePic.className = "profile-pic";
+
+        loadProfilePic();
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.accept = "image/*"; //only image
+        fileInput.style.display = "none";
+
+        userProfilePic.onclick = function () {
+          fileInput.click();
+        };
+
+        fileInput.onchange = function () {
+          const file = fileInput.files[0];
+          if (file) {
+            saveProfilePic(file); //salvare in localStorage
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              userProfilePic.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+
+        document.body.appendChild(fileInput);
+        ///Titlu
+        const title = document.createElement("h1");
+        title.textContent = "Profil Utilizator";
+
+        if (currentUser) {
+          const firstNameInput = createInput(
+            "firstName",
+            currentUser.firstName
+          );
+          const lastNameInput = createInput("lastName", currentUser.lastName);
+          const emailInput = createInput("email", currentUser.email);
+
+          userInfoContainer.appendChild(userProfilePic);
+          userInfoContainer.appendChild(firstNameInput);
+          userInfoContainer.appendChild(lastNameInput);
+          userInfoContainer.appendChild(document.createElement("br"));
+          userInfoContainer.appendChild(emailInput);
+
+          const editButton = document.createElement("button");
+          editButton.textContent = "Editeaza profil";
+          editButton.onclick = function () {
+            toggleEdit(true);
+          };
+          userInfoContainer.appendChild(editButton);
+
+          //save
+          const saveButton = document.createElement("button");
+          saveButton.textContent = "Salveaza modificarile";
+          saveButton.style.display = "none"; // ascuns initial
+          saveButton.onclick = function () {
+            saveProfile(firstNameInput, lastNameInput, emailInput);
+            toggleEdit(false); // Pune campurile inapoi pe readonly
+          };
+          userInfoContainer.appendChild(saveButton);
+
+          profileContainer.appendChild(userInfoContainer);
+
+          //introducerea inputurilor
+          function createInput(id, value) {
+            const input = document.createElement("input");
+            input.id = id;
+            input.value = value;
+            input.readOnly = true; // campurile sunt readonly initial
+            return input;
+          }
+
+          function toggleEdit(isEditable) {
+            const inputs = document.querySelectorAll(
+              "#firstName, #lastName, #email"
+            );
+            inputs.forEach((input) => {
+              input.readOnly = !isEditable;
+            });
+            if (isEditable) {
+              editButton.style.display = "none";
+              saveButton.style.display = "block";
+            } else {
+              editButton.style.display = "block";
+              saveButton.style.display = "none";
+            }
+          }
+
+          function saveProfile(firstNameInput, lastNameInput, emailInput) {
+            currentUser.firstName = firstNameInput.value;
+            currentUser.lastName = lastNameInput.value;
+            currentUser.email = emailInput.value;
+
+            // actualizeaza utilizatorul
+            users.forEach((user, index) => {
+              if (user.email === currentUser.email) {
+                users[index] = currentUser; //actualizare utilizator in lista
+              }
+            });
+
+            localStorage.setItem("users", JSON.stringify(users)); // save utilizatori în localStorage
+            alert("Profilul a fost actualizat!");
+          }
+        }
+        document.body.appendChild(profileContainer);
+
+        //Descrierea
+
+        const descriptionLabel = document.createElement("label");
+        descriptionLabel.textContent = "Descriere:";
+        descriptionLabel.for = "description";
+
+        const description = document.createElement("p");
+        description.id = "description";
+        description.textContent =
+          "Pasionată de fotografie și călătorii ✈️📸. Împărtășesc momente din viața mea, de la natură la zile relaxante în oraș. 🌍💖  #TravelBlogger #NatureLover";
+
+        profileContainer.appendChild(descriptionLabel);
+        profileContainer.appendChild(description);
+        createGallery();
+      }
+
+      //Create modal
+      /* de facut createModalOpenPost() {
+                  - trb sa-ti creeze modalul (HTML-ul)
+                  -
+                }*/
+
+      //*de facut* showModal si createModal trebuiesc merge-uite intr-o singura functie care creeaza html-ul, si-l populeaza pe baza lui currentUser, in functie de poza pe care ai dat click.
+      function showModal(postIndex) {
+        const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {
+          posts: [],
+        };
+
+        if (currentUser.posts && currentUser.posts.length > 0) {
+          const post = currentUser.posts[postIndex];
+
+          if (post) {
+            const modal = document.createElement("div");
+            modal.id = "postModal";
+            modal.classList.add("modalPost");
+
+            const modalContent = document.createElement("div");
+            modalContent.classList.add("modal-contentPost");
+
+            const closeBtn = document.createElement("span");
+            closeBtn.classList.add("close");
+            closeBtn.textContent = "×";
+            closeBtn.onclick = closeModal;
+
+            const imgElement = document.createElement("img");
+            imgElement.classList.add = "pozaPostarii";
+            imgElement.src = post.imgSrc;
+
+            const modalText = document.createElement("div");
+            modalText.classList.add("modal-text");
+
+            const description = document.createElement("h2");
+            description.id = "modalDescription";
+            description.textContent = post.description;
+
+            const commentsContainer = document.createElement("div");
+            commentsContainer.id = "commentsContainer";
+            commentsContainer.classList.add("comments");
+            // Adăugarea comentariilor
+            post.comments.forEach((comment) => {
+              const commentElement = document.createElement("div");
+              commentElement.classList.add("comment");
+              commentElement.textContent = comment;
+              commentsContainer.appendChild(commentElement);
+
+              // Adăugăm autorul și conținutul comentariului
+              const authorElement = document.createElement("strong");
+              authorElement.textContent = comment.author + ": ";
+              commentElement.appendChild(authorElement);
+              const contentElement = document.createElement("span");
+              contentElement.textContent = comment.content;
+              commentElement.appendChild(contentElement);
+
+              // Adăugăm data comentariului (opțional, dar arată frumos)
+              const dateElement = document.createElement("span");
+              dateElement.classList.add("comment-date");
+              dateElement.textContent = new Date(comment.date).toLocaleString();
+              commentElement.appendChild(dateElement);
+
+              // Adăugăm comentariul în containerul de comentarii
+              commentsContainer.appendChild(commentElement);
+            });
+            const commentInput = document.createElement("textarea"); //creare camp pentru texul comm
+            commentInput.placeholder = "Add a comment...";
+            commentInput.classList.add("comment-input");
+
+            const addCommentButton = document.createElement("button");
+            addCommentButton.textContent = "Add Comment";
+            addCommentButton.classList.add("add-comment-btn");
+            addCommentButton.addEventListener("click", () => {
+              const newComment = commentInput.value.trim();
+              if (newComment) {
+                const newCommentObject = {
+                  author: currentUser.firstName,
+                  content: newComment,
+                  date: new Date().toISOString(),
+                };
+                post.comments.push(newCommentObject);
+
+                commentsContainer.appendChild(
+                  createCommentElement(newCommentObject)
+                );
+
+                commentInput.value = "";
+
+                localStorage.setItem("users", JSON.stringify(users));
+                localStorage.setItem(
+                  "currentUser",
+                  JSON.stringify(currentUser)
+                );
+              }
+            });
+
+            function createCommentElement(comment) {
+              const commentElement = document.createElement("div");
+              commentElement.classList.add("comment");
+
+              const authorElement = document.createElement("strong");
+              authorElement.textContent = comment.author + ": ";
+              commentElement.appendChild(authorElement);
+
+              const contentElement = document.createElement("span");
+              contentElement.textContent = comment.content;
+              commentElement.appendChild(contentElement);
+
+              const dateElement = document.createElement("span");
+              dateElement.classList.add("comment-date");
+              dateElement.textContent = new Date(comment.date).toLocaleString();
+              commentElement.appendChild(dateElement);
+
+              return commentElement;
+            }
+
+            // Adăugarea elementelor în modal
+            modalText.appendChild(description);
+            modalText.appendChild(commentsContainer);
+            modalText.appendChild(commentInput);
+            modalText.appendChild(addCommentButton);
+            modalContent.appendChild(closeBtn);
+            modalContent.appendChild(imgElement);
+            modalContent.appendChild(modalText);
+            modal.appendChild(modalContent);
+
+            // Adăugarea modalului în body
+            document.body.appendChild(modal);
+
+            // Afișarea modalului
+            modal.style.display = "flex";
+          }
+        } else {
+          console.log("Nu există posturi în localStorage.");
+        }
+      }
+
+      function closeModal() {
+        const modal = document.getElementById("postModal");
+        if (modal) {
+          modal.style.display = "none";
+          modal.remove();
+        }
+      }
+      function createCommentElement(comment) {
+        const commentElement = document.createElement("div");
+        commentElement.classList.add("comment");
+        commentElement.textContent = comment;
+        return commentElement;
+      }
+
+      //Galerie
+      function createGallery() {
+        const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+        const profileContainer = document.getElementById("profileContainer");
+
+        if (!profileContainer) {
+          console.error("Containerul de profil nu a fost găsit.");
+          return;
+        }
+
+        const gallery = document.createElement("div");
+        gallery.id = "gallery";
+        gallery.className = "instagram-gallery";
+
+        //verificare postari
+        if (currentUser && currentUser.posts && currentUser.posts.length > 0) {
+          for (let i = 0; i < currentUser.posts.length; i++) {
+            const post = currentUser.posts[i];
+            const imgElement = document.createElement("img");
+            imgElement.setAttribute("src", post.imgSrc);
+            imgElement.setAttribute("alt", post.caption || "Instagram post");
+            imgElement.classList.add("gallery-image");
+
+            imgElement.addEventListener("click", () => {
+              showModal(i);
+            });
+
+            gallery.appendChild(imgElement);
+          }
+        } else {
+          console.error("Nu există posturi în localStorage.");
+        }
+
+        profileContainer.appendChild(gallery);
+      }
+
+      function openCreatePostModal() {
+        const modal = document.createElement("div");
+        modal.classList.add("modal");
+
+        const modalContent = document.createElement("div");
+        modalContent.classList.add("modal-content");
+
+        const postForm = document.createElement("div");
+        postForm.classList.add("post-form");
+
+        const photoInput = document.createElement("input");
+        photoInput.type = "file";
+        photoInput.accept = "image/*";
+        postForm.appendChild(photoInput);
+
+        const descriptionInput = document.createElement("input");
+        descriptionInput.type = "text";
+        descriptionInput.placeholder = "Scrie o descriere...";
+        postForm.appendChild(descriptionInput);
+
+        const addPostButton = document.createElement("button");
+        addPostButton.textContent = "Adaugă postare";
+        addPostButton.type = "button";
+        postForm.appendChild(addPostButton);
+
+        const closeButton = document.createElement("button");
+        closeButton.textContent = "X";
+        closeButton.type = "button";
+        closeButton.classList.add("close-btn");
+        modalContent.appendChild(closeButton);
+
+        modalContent.appendChild(postForm);
+        modal.appendChild(modalContent);
+
+        document.body.appendChild(modal);
+
+        addPostButton.addEventListener("click", function () {
+          addPost(photoInput, descriptionInput.value);
+          document.body.removeChild(modal);
+        });
+
+        closeButton.addEventListener("click", function () {
+          document.body.removeChild(modal);
+        });
+      }
+
+      function addPost(photoInput, description) {
+        const file = photoInput.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const imgSrc = e.target.result;
+
+          const imgElement = document.createElement("img");
+          imgElement.src = imgSrc;
+          imgElement.className = "imaginePostare";
+
+          addImg(imgElement, description);
+
+          // save in LocalStorage
+
+          if (currentUser) {
+            currentUser.posts.push({
+              imgSrc,
+              description,
+              comments: [],
+            });
+
+            localStorage.setItem("users", JSON.stringify(users));
+            //peste tot unde ai linia 675, trb sa fie si linia 677
+            localStorage.setItem("currentUser", JSON.stringify(currentUser));
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function addImg(imgElement, description) {
+        const gallery = document.querySelector("#gallery");
+        const postElement = document.createElement("div");
+        postElement.className = "post";
+
+        postElement.appendChild(imgElement);
+
+        const descriptionElement = document.createElement("p");
+        descriptionElement.textContent = description;
+        postElement.appendChild(descriptionElement);
+
+        const commentSection = document.createElement("div");
+        commentSection.classList.add("comments-section");
+
+        // const commentInput = document.createElement("input");
+        // commentInput.type = "text";
+        // commentInput.placeholder = "Adaugati un comm...";
+        // commentSection.appendChild(commentInput);
+
+        // const postCommentButton = document.createElement("button");
+        // postCommentButton.textContent = "Post comm";
+        // postCommentButton.addEventListener("click", function () {
+        //   addComment(postElement, commentInput.value);
+        //   commentInput.value = "";
+        // });
+        // commentSection.appendChild(postCommentButton);
+
+        const commentsContainer = document.createElement("div");
+        commentsContainer.classList.add("comments-container");
+        postElement.appendChild(commentsContainer);
+        postElement.appendChild(commentSection);
+
+        gallery.appendChild(postElement);
+      }
+
+      function addComment(postElement, commentText) {
+        if (commentText.trim() === "") return;
+
+        if (currentUser) {
+          const userIndex = users.findIndex(
+            (user) => user.email === currentUser.email
+          );
+
+          if (userIndex !== -1) {
+            const postId = postElement.getAttribute("data-post-id");
+            const post = users[userIndex].posts.find(
+              (post) => post.id === parseInt(postId)
+            );
+            if (post) {
+              post.comments.push({
+                user: currentUser.email,
+                text: commentText,
+              });
+              localStorage.setItem("users", JSON.stringify(users));
+            }
+          }
+        }
+
+        const commentElement = document.createElement("div");
+        commentElement.classList.add("comment");
+        commentElement.textContent = commentText;
+        postElement
+          .querySelector(".comments-container")
+          .appendChild(commentElement);
+      }
+
+      showRegister();
+
+      // users = [{email: eu, posts: [img1, img2, img3], profileImg: "src"}.{}]
+
+      //    posts: [{src:img1, comentarii: [], descriere: ""}, img2, img3]
+
+      //   posts = [
+      //         {
+      //             src: "img1",
+      //             comentarii: [],
+      //             descriere: ""
+      //         }
+      //     ]
+    </script>
+  </body>
+</html>
