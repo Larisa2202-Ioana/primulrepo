@@ -1,3 +1,3 @@
 function ceva(){
-    console.log("fluturas");
+    console.log("fluturasii");
 }
